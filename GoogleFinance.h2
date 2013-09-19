@@ -1,0 +1,12 @@
+var topPanel = panel.clear().add_Panel();
+var ie = topPanel.add_IE();
+ie.open("https://www.google.co.uk/finance?tab=we"); 
+ie.waitForField("q").value("WAND"); 
+
+				ie.inject_jQuery();
+				ie.invokeEval("jQuery('form').submit()");	
+				
+				return ie.url();
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll

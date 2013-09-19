@@ -1,0 +1,28 @@
+var topPanel = panel.clear().add_Panel();
+var ie = topPanel.add_IE();
+ie.open("http://127.0.0.1:8080/jpetstore/"); 
+ie.links().where((link)=>link.url().contains("signonForm")).first().scrollIntoView().click();
+ie.field("username").value("test");
+ie.field("password").value("test1");
+
+ie.field("password").injectHtml_afterEnd("<input type='submit' value='Submit'>");
+ie.button("Submit").click();
+
+ie.links().where((link)=>link.url().contains("FISH")).second().click();
+ie.links().where((link)=>link.url().contains("FI-FW-01")).first().click();
+ie.links().where((link)=>link.url().contains("addItemToCart.do?workingItemId=EST-4")).first().click();
+ie.links().where((link)=>link.url().contains("checkout.do")).first().click();
+ie.links().where((link)=>link.url().contains("newOrder.do")).first().click();
+ie.field("order.billCountry").injectHtml_afterEnd("<p><label name='priceToPay'>Going to pay £2.00</label>");
+ie.field("order.totalCost").value("2.00");
+1000.wait();
+ie.eval("document.forms[1].submit();");
+return ie.fields();
+//ie.eval("document.forms[1].submit();");
+//ie.inject_FirebugLite();
+
+
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll
+//O2Ref:Microsoft.mshtml.dll

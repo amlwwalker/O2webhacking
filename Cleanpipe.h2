@@ -1,0 +1,41 @@
+//var topPanel = panel.clear().add_Panel();
+//var ie = topPanel.add_IE();
+var topPanel = "FORM WINDOW TITLE".popupWindow();
+var ie = topPanel.add_IE();
+var actionPanel = topPanel.insert_Above(40);
+ie.open("<the website goes here>"); 
+actionPanel.add_Label("Logging in as testuser").size(20);
+ie.field("username").value("testuser").flash();
+ie.field("password").value("Letmein5").flash();
+
+ie.button("Login").click().flash();
+actionPanel.clear();
+actionPanel.add_Label("These are the customers we currently have control over...").size(20);
+ie.links().where((link)=>link.url().contains("/serviceprovider/enterprises/overview")).first().scrollIntoView().flash().click().flash();
+1000.wait();
+actionPanel.clear();
+actionPanel.add_Label("Searching for ourself in the list of admins").size(20);
+ie.links().where((link)=>link.url().contains("administrators/overview")).first().flash().click().flash();
+ie.field("searchTerm").value("testuser").flash();
+ie.field("searchTerm").injectHtml_afterEnd("<input type='submit' value='Submit' value='Submit'>").flash();
+ie.button("Submit").click().flash();
+ie.links().where((link)=>link.url().contains("administrator/20")).first().scrollIntoView().flash().click().flash();
+actionPanel.clear();
+actionPanel.add_Label("Injecting and 'Edit' Button into the page").size(20);
+ie.element("manage-sp-administrators").injectHtml_afterEnd("<br><span id='hiddenSpan'></span>");
+ie.element("hiddenSpan").scrollIntoView().flash();
+ie.element("allCustomers").injectHtml_afterEnd("<br><br><a href='#link-to-same-page-in-edit-mode' data-edit-mode='toggle' class='btn pull-right hide-if-no-js hide-in-edit-mode'>Edit</a>").flash();
+ie.links().where((link)=>link.url().contains("link-to-same-page-in-edit-mode")).third().flash().click().flash();
+actionPanel.clear();
+actionPanel.add_Label("Removing restriction on who we can control:").size(20);
+ie.eval("document.getElementById('allCustomers').checked = false;"); 
+ie.field("allCustomers").injectHtml_afterEnd("<br><br><input type='submit' value='Submit' value='Submit'>").flash();
+ie.button("Submit").click().flash();
+actionPanel.clear();
+actionPanel.add_Label("Now we can control everyone:").size(20);
+ie.links().where((link)=>link.url().contains("/serviceprovider/enterprises/overview")).first().click().flash();
+
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll
+//O2Ref:Microsoft.mshtml.dll

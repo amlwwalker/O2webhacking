@@ -1,0 +1,7 @@
+var topPanel = panel.clear().add_Panel();
+var ie = topPanel.add_IE();
+ie.open("https://www.twitter.com"); 
+ie.inject_FirebugLite();
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll

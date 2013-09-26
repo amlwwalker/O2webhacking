@@ -1,0 +1,23 @@
+var topPanel = panel.clear().add_Panel();
+var ie = topPanel.add_IE();
+var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
+dataGridView.add_Columns("link found");
+for (int i=0; i<10; i=i+10){
+ie.open("https://www.google.co.uk/search?q=O2+links&ie=utf-8&oe=utf-8&rls=org.mozilla:en-US:official&client=firefox-a&channel=fflb&gws_rd=cr&ei=S_JCUsi5DfHu0gWe7oCQAQ#channel=fflb&q=alexander&rls=org.mozilla:en-US:official&safe=off&start="+i); 
+ie.waitForComplete();
+	foreach (var l in ie.links()){
+		if (l.url().contains("wikipedia")){
+		dataGridView.add_Row(l.url());
+		}
+	}
+}
+//foreach ((link)=>link.url() l in ie.links()){
+
+//}
+//				ie.inject_jQuery();
+//				ie.invokeEval("jQuery('form').submit()");	
+				
+//				return ie.url();
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll

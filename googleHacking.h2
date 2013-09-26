@@ -1,0 +1,38 @@
+var topPanel = "FORM WINDOW TITLE".popupWindow();
+var ie = topPanel.add_IE().maximized();
+var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
+dataGridView.add_Columns("link found");
+ie.open("https://www.google.com");
+var actionPanel = topPanel.insert_Above(40);
+
+Action<string> findLinkedInResults =
+(value)=> {
+value.Replace(" ","+");
+dataGridView.clear();
+	for (int i=0; i<100; i=i+10){
+	ie.open("https://www.google.co.uk/?gws_rd=cr&ei=VvdCUqSbNYeTtQbQ2oDoDQ#q="+value+"&safe=off&start="+i); 
+	ie.waitForComplete();
+	
+	var returned = ie.html().lines().where((line)=>line.Contains("To continue, please type the characters below:"));
+	if (!returned.Equals("")){
+	10000.wait();
+	} 
+	//FIND:
+		foreach (var l in ie.links()){
+			if (!(l.url().contains("google")) && !(l.url().contains("dir")) && !(l.url().contains("title")) &&(l.url().contains("linkedin"))){
+			dataGridView.add_Row(l.url());
+			}
+		}
+			100.wait();
+	}
+};
+
+actionPanel.add_LabelAndTextAndButton("Google Hack:",	// label text
+"google hack here", // initial value
+"Start", // button text
+findLinkedInResults);
+
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll
+//O2Ref:Microsoft.mshtml.dll

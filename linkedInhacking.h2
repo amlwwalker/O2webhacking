@@ -1,0 +1,70 @@
+var topPanel = "FORM WINDOW TITLE".popupWindow();
+var ie = topPanel.add_IE().maximized();
+var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
+dataGridView.add_Columns("link found", "Name", "Assumed Email", "Job Title");
+
+var actionPanel = topPanel.insert_Above(40);
+var allLinks = new List<string>();
+
+Action<String> detectCaptcha = 
+(captchaInput)=>{
+	if (captchaInput.isNotNull()){
+		var answer = "Enter the captcha here. Be very careful when reading the captcha".askUser();
+		while (!answer.valid()) {
+			answer = "Enter the captcha here".askUser();
+		}
+		ie.field("captcha").value(answer);
+		ie.button("Submit").click();
+	} else {
+	}
+};
+
+Action<string> findLinkedInResults =
+(value)=> {
+//value = "site:www.linkedin.com intitle:linkedin ( \"current\"  and \"consultant\" and \"CompanyName\")  -intitle:profile";
+value.Replace(" ","+");
+dataGridView.clear();
+//	ie.open("https://www.google.co.uk/search?&q="+value+"&safe=off&start=0"); 
+//	ie.waitForComplete();
+		
+	
+for (int i=0; i<20; i++)
+{
+	ie.open("https://www.google.co.uk/search?&q="+value+"&safe=off&start="+i*10); 
+	ie.waitForComplete();
+		
+	var captchaFound = ie.html().lines().where((line)=>line.Contains("To continue, please type the characters below:")).first();
+	detectCaptcha(captchaFound);
+		
+		var linkedinlinks = ie.links().uris().where<Uri>( uri=>uri.Host.contains("linkedin"));
+		linkedinlinks.forEach<Uri>(
+		(link) =>{ 
+			if(!link.str().Contains("google") && !link.str().Contains("dir") && !link.str().Contains("title") && link.str().Contains("/pub/")){
+			allLinks.add(link.str());
+			}
+		});
+
+}
+	
+foreach (var data in allLinks.sort()){
+ie.open(data);
+var jobTitle = ie.html().lines().where((line)=>line.Contains("headline-title title")).first().subString_After(">").subString_Before("<");
+var splitAddress = data.split("/");
+var name = splitAddress[4].split("-");
+dataGridView.add_Row(data,name[0]+" "+name[1], name[0]+"."+name[1]+"@emailAddress.com", jobTitle);
+}
+
+//var savedData = allLinks.sort().save();
+//savedData.showInCodeViewer();
+};
+
+actionPanel.add_LabelAndTextAndButton("Google Hack:",	// label text
+"google hack here", // initial value
+"Start", // button text
+findLinkedInResults);
+
+
+//using FluentSharp.Watin;
+//O2Ref:FluentSharp.Watin.dll
+//O2Ref:WatiN.Core.dll
+//O2Ref:Microsoft.mshtml.dll

@@ -1,4 +1,4 @@
-var topPanel = "FORM WINDOW TITLE".popupWindow();
+var topPanel = "LinkedIn Hacking".popupWindow();
         var ie = topPanel.add_IE().maximized();
         var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
         dataGridView.add_Columns("link found", "Name", "Assumed Email", "Job Title");

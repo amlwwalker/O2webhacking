@@ -1,38 +1,236 @@
 var topPanel = "FORM WINDOW TITLE".popupWindow();
-var ie = topPanel.add_IE().maximized();
-var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
-dataGridView.add_Columns("link found");
-ie.open("https://www.google.com");
-var actionPanel = topPanel.insert_Above(40);
+        var ie = topPanel.add_IE().maximized();
+        var dataGridView = topPanel.insert_Right("Results").add_DataGridView();
+        dataGridView.add_Columns("link found", "First Name", "Surname", "Job Title", "Job Description");
 
-Action<string> findLinkedInResults =
-(value)=> {
-value.Replace(" ","+");
-dataGridView.clear();
-	for (int i=0; i<100; i=i+10){
-	ie.open("https://www.google.co.uk/?gws_rd=cr&ei=VvdCUqSbNYeTtQbQ2oDoDQ#q="+value+"&safe=off&start="+i); 
-	ie.waitForComplete();
+        var actionPanel = topPanel.insert_Above(80);
+        var allLinks = new List<string>();
+        var allData = new List<string>();
+        
+        var op1String = "";
+        var op2String = "";
+        var op3String = "";
+        var op4String = "";
+        var op5String = "";
+        var op6String = "";      
+        
+        var op1Negative = false;
+        var op2Negative = false;
+        var op3Negative = false;
+        var op4Negative = false;
+        var op5Negative = false;
+        var op6Negative = false;
+        
+        var site = "";
+
+        Action<String> detectCaptcha =
+        (captchaInput) =>
+        {
+            if (captchaInput.isNotNull())
+            {
+                var answer = "Enter the captcha here. Be very careful when reading the captcha".askUser();
+                while (!answer.valid())
+                {
+                    answer = "Enter the captcha here".askUser();
+                }
+                ie.field("captcha").value(answer);
+                ie.button("Submit").click();
+            }
+            else
+            {
+            }
+        };
+
+        Func<int> numPages =
+            () =>
+            {
+                var pages = "Have you checked how many pages there are for this search?".askUser();
+                int passInt = 0;
+                while (!int.TryParse(pages, out passInt))
+                {
+                    pages = "Have you checked how many pages there are for this search? - thats not a valid integer".askUser();
+                }
+                return passInt;
+            };
+
+        Action<string> findLinkedInResults =
+        (value) =>
+        {
+            //value = "site:www.linkedin.com intitle:linkedin ( \"current\"  and \"consultant\" and \"detica\")  -intitle:profile";
+            value.Replace(" ", "+");
+            dataGridView.remove_Rows();
+
+            var pages = numPages();
+            for (int i = 0; i < pages; i++)
+            {
+                ie.open("https://www.google.co.uk/search?&q=" + value + "&safe=off&start=" + i * 10);
+                ie.waitForComplete();
+
+                var captchaFound = ie.html().lines().where((line) => line.Contains("To continue, please type the characters below:")).first();
+                detectCaptcha(captchaFound);
+
+                var linkedinlinks = ie.links().uris().where<Uri>(uri => uri.Host.contains(site));
+                linkedinlinks.forEach<Uri>(
+                (link) =>
+                {
+                    if (!link.str().Contains("google") && !link.str().Contains("dir") && !link.str().Contains("title") && link.str().Contains("/pub/"))
+                    {
+                        allLinks.add(link.str());
+                    }
+                });
+            }
+
+            foreach (var data in allLinks.sort())
+            {
+                ie.open(data);
+                var jobTitle = ie.html().lines().where((line) => line.Contains("headline-title title")).first().subString_After(">").subString_Before("<");
+                var splitAddress = data.split("/");
+                var name = splitAddress[4].split("-");
+                var jobDescription = ie.html().lines().where((line) => line.Contains("description current-position")).first().subString_After(">").subString_Before("<br>");
+                
+                dataGridView.add_Row(data, name[0], name[1], jobTitle, jobDescription);
+                var stringToStore = data + "??" + jobTitle + "??" + name[0] + "??" + name[1] + "??" + jobDescription;
+                allData.add(stringToStore.ToString());
+
+            }
+
+            var savedData = allData.sort().save();
+            savedData.showInCodeViewer();
+        };
+    
+//		var newPanel = actionPanel.add_Panel().insert_Below(100);
+		var ghack1 = actionPanel.add_Label("OP1:").top(5).left(23)
+           .append_Control<ComboBox>().dropDownList().top(2)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                        
+                                         .onSelection((value)=> {
+																		op1String = value.str();
+                                                                 })
+                                         .selectFirst();
+        actionPanel.add_CheckBox(3, 0,"!").onChecked((value)=> {
+                                         								op1Negative = value;
+                                                                 });
+                                                                 
+        var textBoxG1 = actionPanel.add_TextBox("").top(3).left(180);
+            var ghack2 = actionPanel.add_Label("OP2:").top(5).left(306)
+           .append_Control<ComboBox>().dropDownList().top(2)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                          
+                                         .onSelection((value)=> {
+																		op2String = value.str();
+                                                                 })
+                                         .selectFirst();
+        actionPanel.add_CheckBox(3, 283,"!").onChecked((value)=> {
+                                         								op2Negative = value;
+                                                                 });
+        var textBoxG2 = actionPanel.add_TextBox("").top(3).left(460);
+            var ghack3 = actionPanel.add_Label("OP3:").top(33).left(23)
+           .append_Control<ComboBox>().dropDownList().top(30)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                        
+                                         .onSelection((value)=> {
+																		op3String = value.str();
+                                                                 })
+                                         .selectFirst(); 
+               actionPanel.add_CheckBox(31, 0,"!").onChecked((value)=> {
+                                         								op3Negative = value;
+                                                                 });
+        var textBoxG3 = actionPanel.add_TextBox("").top(30).left(180); 
+        var G3negative = actionPanel.add_CheckBox(0 ,100,"hello");
+  var ghack4 = actionPanel.add_Label("OP4:").top(33).left(306)
+           .append_Control<ComboBox>().dropDownList().top(30)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                          
+                                         .onSelection((value)=> {
+                                         								 op4String = value.str();
+                                                                 })
+                                         .selectFirst();
+       actionPanel.add_CheckBox(31, 283,"!").onChecked((value)=> {
+                                         								op4Negative = value;
+                                                                 });
+        var textBoxG4 = actionPanel.add_TextBox("").top(30).left(460);
+        
+                    var ghack5 = actionPanel.add_Label("OP5:").top(63).left(23)
+           .append_Control<ComboBox>().dropDownList().top(60)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                        
+                                         .onSelection((value)=> {
+																		op5String = value.str();
+                                                                 })
+                                         .selectFirst(); 
+        actionPanel.add_CheckBox(61, 0,"!").onChecked((value)=> {
+                                         								op5Negative = value;
+                                                                 });
+        var textBoxG5 = actionPanel.add_TextBox("").top(60).left(180);         
+  		var ghack6 = actionPanel.add_Label("OP6:").top(63).left(306)
+           .append_Control<ComboBox>().dropDownList().top(60)
+                                         .add_Items("-----","intitle","allintitle","inurl","allinurl","filetype","site","link","inanchor","numrange","daterange","author","insubject")                                          
+                                         .onSelection((value)=> {
+                                         								 op6String = value.str();
+                                                                 })
+                                         .selectFirst();
+        actionPanel.add_CheckBox(61, 283,"!").onChecked((value)=> {
+                                         								op6Negative = value;
+                                                                 });
+        var textBoxG6 = actionPanel.add_TextBox("").top(60).left(460);
+        
+        var website = actionPanel.add_Label("Site:").top(6).left(567)
+           .append_Control<ComboBox>().dropDownList().top(3)
+                                         .add_Items("-----","linkedin")                                        
+                                         .onSelection((value)=> {
+																		site = value.str();
+                                                                 })
+                                         .selectFirst();
+ var button = actionPanel.add_Button("Connect").top(30).left(600).onClick(()=> {
+ 						
+ 																	var hack = "";
+ 																	
+ 																	if (op1String != "-----"){
+ 																		if(op1Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op1String + ":" + textBoxG1.get_Text() + " ";
+ 																	}
+ 																	if (op2String != "-----"){
+ 																		if(op2Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op2String + ":" + textBoxG2.get_Text() + " ";
+ 																	}
+ 																	if (op3String != "-----"){
+ 																		if(op3Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op3String + ":" + textBoxG3.get_Text() + " ";
+ 																	}
+ 																	if (op4String != "-----"){
+ 																		if(op4Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op4String + ":" + textBoxG4.get_Text() + " ";
+ 																	}
+ 																	if (op5String != "-----"){
+ 																		if(op5Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op5String + ":" + textBoxG5.get_Text() + " ";
+ 																	}
+ 																	if (op6String != "-----"){
+ 																		if(op6Negative == true){
+ 																			hack+= "-";
+ 																			}
+ 																	hack += op6String + ":" + textBoxG6.get_Text();
+ 																	}
+ 																	var answer = ("Your Google Hack is:\n" + hack).alert();
+ 																	if(site == "" || site == "-----"){
+ 																	("You need to pick a site").alert();
+ 																	} else {
+ 																			findLinkedInResults(hack);
+ 																			}
+ 																});
+ 		
+ 
+//        actionPanel.add_LabelAndTextAndButton("Google Hack:",	// label text
+//        "google hack here", // initial value
+//        "Start", // button text
+//        findLinkedInResults);
 	
-	var returned = ie.html().lines().where((line)=>line.Contains("To continue, please type the characters below:"));
-	if (!returned.Equals("")){
-	10000.wait();
-	} 
-	//FIND:
-		foreach (var l in ie.links()){
-			if (!(l.url().contains("google")) && !(l.url().contains("dir")) && !(l.url().contains("title")) &&(l.url().contains("linkedin"))){
-			dataGridView.add_Row(l.url());
-			}
-		}
-			100.wait();
-	}
-};
-
-actionPanel.add_LabelAndTextAndButton("Google Hack:",	// label text
-"google hack here", // initial value
-"Start", // button text
-findLinkedInResults);
-
-//using FluentSharp.Watin;
-//O2Ref:FluentSharp.Watin.dll
-//O2Ref:WatiN.Core.dll
-//O2Ref:Microsoft.mshtml.dll
+        //using FluentSharp.Watin;
+        //O2Ref:FluentSharp.Watin.dll
+        //O2Ref:WatiN.Core.dll
+        //O2Ref:Microsoft.mshtml.dll
